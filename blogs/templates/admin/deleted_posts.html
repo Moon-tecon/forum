@@ -1,0 +1,49 @@
+{% extends'admin/base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}回收站--评论{% endblock %}
+
+{% block admin_content %}
+    <h3>回收站--评论</h3>
+    {% if posts %}
+        <table class="table table-striped">
+            <thead>
+            <tr class="bg-primary text-white">
+                <th>序号</th>
+                <th>标题</th>
+                <th width="40%">内容</th>
+                <th>主题</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            {% for post in posts %}
+                <tr>
+                    <td>{{ loop.index + ((pagination.page - 1) * config['DELETED_PER_PAGE']) }}</td>
+                    <td><a href="{{ url_for('main.show_post', post_id=post.id) }}">{{ post.title }}</a></td>
+                    <td>{{ post.body|striptags|truncate(100,ture,'......') }}</td>
+                    <td>
+                        <a href="{{ url_for('main.show_topic', topic_id=post.topic_id) }}">{{ post.topic.name }}</a>
+                        {% if post.replied_id %}<br><<
+                            <a href="{{ url_for('main.show_post', post_id=post.replied_id) }}">{{ post.replied.title }}</a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post"
+                              action="{{ url_for('main.delete_post', post_id=post.id, next=request.full_path) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('确定删除吗？')">删除</button>
+                        </form>
+                        <form method="post"
+                              action="{{ url_for('admin.cancel_deleted_post', post_id=post.id, next=request.full_path)}}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-primary btn-sm"
+                                    onclick="return confirm('确定移除删除标记吗？')">取消删除标记</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="page-footer">{{ render_pagination(pagination) }}</div>
+    {% endif %}
+{% endblock %}
